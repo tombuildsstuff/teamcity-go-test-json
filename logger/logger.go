@@ -124,12 +124,12 @@ func sanitizeInput(input string) string {
 	output := input
 
 	// from https://confluence.jetbrains.com/display/TCD9/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-ReportingTests
-	output = strings.ReplaceAll(output, "|", "||")
-	output = strings.ReplaceAll(output, "'", "|'")
-	output = strings.ReplaceAll(output, "\n", "|n")
-	output = strings.ReplaceAll(output, "\r", "|r")
-	output = strings.ReplaceAll(output, "[", "|[")
-	output = strings.ReplaceAll(output, "]", "|]")
+	output = strings.Replace(output, "|", "||", -1)
+	output = strings.Replace(output, "'", "|'", -1)
+	output = strings.Replace(output, "\n", "|n", -1)
+	output = strings.Replace(output, "\r", "|r", -1)
+	output = strings.Replace(output, "[", "|[", -1)
+	output = strings.Replace(output, "]", "|]", -1)
 
 	return output
 }
