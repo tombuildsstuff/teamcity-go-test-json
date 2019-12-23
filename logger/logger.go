@@ -2,12 +2,20 @@ package logger
 
 import (
 	"fmt"
+	"log"
 	"strings"
+	"time"
 )
 
 type testData struct {
-	stdErr []string
-	stdOut []string
+	started  time.Time
+	stdErr   []string
+	stdOut   []string
+	messages []string
+}
+
+func (td *testData) append(message string) {
+	td.messages = append(td.messages, message)
 }
 
 func (td *testData) appendErr(message string) {
@@ -35,27 +43,29 @@ func (tl TeamCityTestLogger) TestSuiteStarted(name string) {
 }
 
 func (tl TeamCityTestLogger) TestStart(name string) {
-	fmt.Printf("##teamcity[testStarted name='%s' captureStandardOutput='false']\n", name)
 	tl.tests[name] = &testData{
-		stdErr: []string{},
-		stdOut: []string{},
+		stdErr:  []string{},
+		stdOut:  []string{},
+		started: time.Now(),
 	}
 }
 
 func (tl TeamCityTestLogger) TestIgnored(name string, message string) {
 	if message == "" {
-		fmt.Printf("##teamcity[testIgnored name='%s']\n", name)
+		tl.tests[name].append(fmt.Sprintf("##teamcity[testIgnored name='%s']\n", name))
 	} else {
 		message = sanitizeInput(message)
-		fmt.Printf("##teamcity[testIgnored name='%s' message='%s']\n", name, message)
+		tl.tests[name].append(fmt.Sprintf("##teamcity[testIgnored name='%s' message='%s']\n", name, message))
 	}
 
-	delete(tl.tests, name)
+	tl.TestFinished(name, -1)
 }
 
 func (tl TeamCityTestLogger) TestFinished(name string, duration int64) {
 	test, ok := tl.tests[name]
 	if ok {
+		fmt.Printf("##teamcity[testStarted name='%s' captureStandardOutput='false']\n", name)
+
 		// we can only have one StdErr/StdOut per test
 		out := strings.Join(test.stdOut, "\n")
 		out = strings.TrimSuffix(out, "\n")
@@ -66,10 +76,15 @@ func (tl TeamCityTestLogger) TestFinished(name string, duration int64) {
 		err = strings.TrimSuffix(err, "\n")
 		err = sanitizeInput(err)
 		fmt.Printf("##teamcity[testStdErr name='%s' out='%s']\n", name, err)
+
+		// anything else
+		log.Printf(strings.Join(test.messages, "\n"))
 	}
 
 	// output the stderr/stdout
 	fmt.Printf("##teamcity[testFinished name='%s' duration='%d']\n", name, duration)
+
+	delete(tl.tests, name)
 }
 
 func (tl TeamCityTestLogger) TestStdErr(name string, err string) {
@@ -97,7 +112,7 @@ func (tl TeamCityTestLogger) TestFailed(name string, duration int64, message, de
 		vals = append(vals, fmt.Sprintf("details='%s'", details))
 	}
 
-	fmt.Printf("##teamcity[testFailed %s]\n", strings.Join(vals, " "))
+	tl.tests[name].append(fmt.Sprintf("##teamcity[testFailed %s]\n", strings.Join(vals, " ")))
 	tl.TestFinished(name, duration)
 }
 
