@@ -22,4 +22,7 @@ type ExecuteInput struct {
 
 	// Should parsed output be logged to stdout for debugging purposes?
 	Debug bool
+
+	// The timeout in hours which should be used for the tests
+	TimeoutInHours int
 }

@@ -37,6 +37,14 @@ func (input ExecuteInput) toArgs() []string {
 		args = append(args, "-count=1")
 	}
 
+	if input.TimeoutInHours != 0 {
+		timeoutInMinutes := input.TimeoutInHours * 60
+		timeoutInSeconds := timeoutInMinutes * 60
+		args = append(args, fmt.Sprintf("-timeout=%ds", timeoutInSeconds))
+	} else {
+		args = append(args, "-timeout=3600s")
+	}
+
 	args = append(args, "-json")
 
 	return args

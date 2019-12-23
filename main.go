@@ -14,6 +14,7 @@ func main() {
 	prefix := flag.String("prefix", "", "The Test Prefix, for example `TestAcc`")
 	scope := flag.String("scope", "", "The directory scope where tests should be run. This'll be suffixed with `/...` if not specified.")
 	parallelism := flag.Int("parallelism", 0, "The number of tests which should be run in parallel where possible")
+	timeout := flag.Int("timeout", 0, "The maximum test duration in hours")
 
 	flag.Parse()
 
@@ -36,6 +37,10 @@ func main() {
 
 	if count != nil && *count != 0 {
 		input.Count = *count
+	}
+
+	if timeout != nil && *timeout != 0 {
+		input.TimeoutInHours = *timeout
 	}
 
 	if err := input.Execute(); err != nil {

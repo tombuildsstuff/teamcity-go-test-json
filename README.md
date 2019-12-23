@@ -22,6 +22,8 @@ The following arguments are supported on the command-line:
 
 * `parallelism` - The number of tests which should be run in parallel.
 
+* `timeout` - The maximum test duration in hours. Defaults to `1`.
+
 You can also set the Environment Variable `DEBUG` to any value to see the commands/output which is being parsed.
 
 ## Licence
