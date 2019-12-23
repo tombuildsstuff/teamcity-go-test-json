@@ -21,5 +21,5 @@ type GoTestJsonLogLine struct {
 
 func (tl GoTestJsonLogLine) Duration() int64 {
 	// e.g. 76.12
-	return int64(tl.Elapsed * 100)
+	return int64(tl.Elapsed * 1000)
 }
