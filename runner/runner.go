@@ -64,6 +64,7 @@ func (input ExecuteInput) readFromScanner(scanner *bufio.Scanner) {
 }
 
 func parseLine(line string, testLogger logger.TeamCityTestLogger) {
+
 	parsed, err := parser.ParseLine(line)
 	if err != nil {
 		log.Printf("[ERROR] %+v", err)
