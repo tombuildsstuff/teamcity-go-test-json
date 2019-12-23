@@ -18,7 +18,7 @@ func main() {
 	flag.Parse()
 
 	input := runner.ExecuteInput{
-		Logger: logger.TeamCityTestLogger{},
+		Logger: logger.NewTeamCityTestLogger(),
 		Debug:  os.Getenv("DEBUG") != "",
 	}
 
