@@ -8,6 +8,7 @@ import (
 )
 
 type testData struct {
+	panic    bool
 	started  time.Time
 	stdErr   []string
 	stdOut   []string
@@ -23,12 +24,17 @@ func (td *testData) appendErr(message string) {
 }
 
 func (td *testData) appendOut(message string) {
+	if td.panic {
+		td.appendErr(message)
+		return
+	}
+
 	td.stdOut = append(td.stdOut, message)
 }
 
 type TeamCityTestLogger struct {
 	// TODO: we're going to have to keep track of which tests have been/are being run here
-	// since we can only output one StdOut and StdErr per test
+	// since we can only output one StdOut and StdErr line per test
 	tests map[string]*testData
 }
 
@@ -46,6 +52,7 @@ func (tl TeamCityTestLogger) TestStart(name string) {
 	tl.tests[name] = &testData{
 		stdErr:  []string{},
 		stdOut:  []string{},
+		panic:   false,
 		started: time.Now(),
 	}
 }
@@ -66,6 +73,9 @@ func (tl TeamCityTestLogger) TestFinished(name string, duration int64) {
 	if ok {
 		fmt.Printf("##teamcity[testStarted name='%s' captureStandardOutput='false']\n", name)
 
+		// anything else
+		log.Printf(strings.Join(test.messages, "\n"))
+
 		// we can only have one StdErr/StdOut per test
 		out := strings.Join(test.stdOut, "\n")
 		out = strings.TrimSuffix(out, "\n")
@@ -76,9 +86,6 @@ func (tl TeamCityTestLogger) TestFinished(name string, duration int64) {
 		err = strings.TrimSuffix(err, "\n")
 		err = sanitizeInput(err)
 		fmt.Printf("##teamcity[testStdErr name='%s' out='%s']\n", name, err)
-
-		// anything else
-		log.Printf(strings.Join(test.messages, "\n"))
 	}
 
 	// output the stderr/stdout
@@ -92,6 +99,10 @@ func (tl TeamCityTestLogger) TestStdErr(name string, err string) {
 }
 
 func (tl TeamCityTestLogger) TestStdOut(name string, out string) {
+	if strings.HasPrefix(out, "panic:") {
+		tl.tests[name].panic = true
+	}
+
 	tl.tests[name].appendOut(out)
 }
 
@@ -130,6 +141,7 @@ func sanitizeInput(input string) string {
 	output = strings.Replace(output, "\r", "|r", -1)
 	output = strings.Replace(output, "[", "|[", -1)
 	output = strings.Replace(output, "]", "|]", -1)
+	output = strings.Replace(output, "|n|n", "|n", -1)
 
 	return output
 }
