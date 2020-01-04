@@ -48,7 +48,9 @@ func (input ExecuteInput) Execute() error {
 	errScanner := bufio.NewScanner(errOut)
 	go input.readFromScanner(errScanner)
 
-	return cmd.Wait()
+	cmd.Wait()
+
+	return nil
 }
 
 func (input ExecuteInput) readFromScanner(scanner *bufio.Scanner) {

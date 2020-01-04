@@ -80,12 +80,16 @@ func (tl TeamCityTestLogger) TestFinished(name string, duration int64) {
 		out := strings.Join(test.stdOut, "\n")
 		out = strings.TrimSuffix(out, "\n")
 		out = sanitizeInput(out)
-		fmt.Printf("##teamcity[testStdOut name='%s' out='%s']\n", name, out)
+		if len(out) > 0 {
+			fmt.Printf("##teamcity[testStdOut name='%s' out='%s']\n", name, out)
+		}
 
 		err := strings.Join(test.stdErr, "\n")
 		err = strings.TrimSuffix(err, "\n")
 		err = sanitizeInput(err)
-		fmt.Printf("##teamcity[testStdErr name='%s' out='%s']\n", name, err)
+		if len(err) > 0 {
+			fmt.Printf("##teamcity[testStdErr name='%s' out='%s']\n", name, err)
+		}
 	}
 
 	// output the stderr/stdout
