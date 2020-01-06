@@ -12,12 +12,7 @@ type TeamCityTestResultLogger struct {
 }
 
 func (rl TeamCityTestResultLogger) Log(result models.TestResult) string {
-	fid, err := uuid.NewV4()
-	if err != nil {
-		panic(fmt.Errorf("Error generating a UUID: %+v", err))
-	}
-
-	flowId := fid.String()
+	flowId := uuid.NewV4().String()
 
 	// always has to be a start
 	builder := rl.logger.TestStart(result.TestName, flowId)
