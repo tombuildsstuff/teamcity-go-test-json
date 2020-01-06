@@ -430,7 +430,20 @@ func TestMultipleTestsSamePackage(t *testing.T) {
 }
 
 func TestMultipleTestsDifferentPackages(t *testing.T) {
-	t.Fail()
+	lines := multipleTestsDifferentPackageConfig
+	results := testParser(lines)
+
+	if len(results) != 11 {
+		t.Fatalf("Expected 11 tests but got %d", len(results))
+	}
+
+	uniquePackages := make(map[string]struct{}, 0)
+	for _, r := range results {
+		uniquePackages[r.Package] = struct{}{}
+	}
+	if len(uniquePackages) != 2 {
+		t.Fatalf("Expected 2 packages but got %d", len(uniquePackages))
+	}
 }
 
 func testParser(lines []string) []models.TestResult {
