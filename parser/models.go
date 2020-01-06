@@ -1,6 +1,8 @@
 package parser
 
-type GoTestJsonLogLine struct {
+import "fmt"
+
+type goTestJsonLogLine struct {
 	Time string `json:"Time"`
 
 	// Action is the type of log message this is: e.g. output, skip, pass, fail, cont, run, pause
@@ -19,7 +21,11 @@ type GoTestJsonLogLine struct {
 	Elapsed float64 `json:"Elapsed,omitempty"`
 }
 
-func (tl GoTestJsonLogLine) Duration() int64 {
+func (tl goTestJsonLogLine) CacheKey() string {
+	return fmt.Sprintf("%s-%s", tl.Package, tl.Test)
+}
+
+func (tl goTestJsonLogLine) Duration() int64 {
 	// e.g. 76.12
 	return int64(tl.Elapsed * 1000)
 }

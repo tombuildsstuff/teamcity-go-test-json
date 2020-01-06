@@ -2,10 +2,9 @@ package main
 
 import (
 	"flag"
-	"log"
+	"fmt"
 	"os"
 
-	"github.com/tombuildsstuff/teamcity-go-test-json/logger"
 	"github.com/tombuildsstuff/teamcity-go-test-json/runner"
 )
 
@@ -19,8 +18,7 @@ func main() {
 	flag.Parse()
 
 	input := runner.ExecuteInput{
-		Logger: logger.NewTeamCityTestLogger(),
-		Debug:  os.Getenv("DEBUG") != "",
+		Debug: os.Getenv("DEBUG") != "",
 	}
 
 	if scope != nil && *scope != "" {
@@ -43,8 +41,9 @@ func main() {
 		input.TimeoutInHours = *timeout
 	}
 
-	if err := input.Execute(); err != nil {
-		log.Printf("[ERROR] Error running executor: %+v", err)
+	executor := runner.NewExecutor()
+	if err := executor.Execute(input); err != nil {
+		fmt.Printf("[ERROR] Error running executor: %+v", err)
 		os.Exit(1)
 	}
 }

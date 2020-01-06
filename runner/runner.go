@@ -9,12 +9,27 @@ import (
 	"strings"
 
 	"github.com/tombuildsstuff/teamcity-go-test-json/logger"
+	"github.com/tombuildsstuff/teamcity-go-test-json/models"
 	"github.com/tombuildsstuff/teamcity-go-test-json/parser"
 )
 
-func (input ExecuteInput) Execute() error {
-	args := input.toArgs()
+var loggedAtLeastOneResult = false
 
+type Executor struct {
+	logger logger.TestResultLogger
+	parser parser.TestResultParser
+}
+
+func NewExecutor() Executor {
+	executor := Executor{
+		logger: logger.TeamCityTestResultLogger{},
+	}
+	executor.parser = parser.NewResultsParser(executor.logTestResult)
+	return executor
+}
+
+func (e *Executor) Execute(input ExecuteInput) error {
+	args := input.toArgs()
 	if input.Debug {
 		log.Printf("[DEBUG] Arguments: %q", strings.Join(args, " "))
 	}
@@ -43,42 +58,33 @@ func (input ExecuteInput) Execute() error {
 	}
 
 	outScanner := bufio.NewScanner(out)
-	go input.readFromScanner(outScanner)
+	go e.readFromScanner(outScanner, input.Debug)
 
 	errScanner := bufio.NewScanner(errOut)
-	go input.readFromScanner(errScanner)
+	go e.readFromScanner(errScanner, input.Debug)
 
 	cmd.Wait()
+
+	if !loggedAtLeastOneResult {
+		return fmt.Errorf("No Tests were found/logged!")
+	}
 
 	return nil
 }
 
-func (input ExecuteInput) readFromScanner(scanner *bufio.Scanner) {
+func (e *Executor) logTestResult(result models.TestResult) {
+	loggedAtLeastOneResult = true
+	fmt.Printf(e.logger.Log(result))
+}
+
+func (e *Executor) readFromScanner(scanner *bufio.Scanner, debug bool) {
 	for scanner.Scan() {
 		text := scanner.Text()
 
-		if input.Debug {
+		if debug {
 			log.Printf("[DEBUG] Found: %q", text)
 		}
 
-		parseLine(text, input.Logger)
-	}
-}
-
-func parseLine(line string, testLogger logger.TeamCityTestLogger) {
-	parsed, err := parser.ParseLine(line)
-	if err != nil {
-		log.Printf("[ERROR] %+v", err)
-		return
-	}
-
-	// e.g. go mod
-	if parsed == nil {
-		return
-	}
-
-	if err := parsed.Log(testLogger); err != nil {
-		log.Printf("[ERROR] %+v", err)
-		return
+		e.parser.ParseLine(text)
 	}
 }
