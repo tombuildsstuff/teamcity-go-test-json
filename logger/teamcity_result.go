@@ -14,8 +14,11 @@ type TeamCityTestResultLogger struct {
 func (rl TeamCityTestResultLogger) Log(result models.TestResult) string {
 	flowId := uuid.NewV4().String()
 
+	// output the package name for logical grouping
+	builder := rl.logger.TestSuiteStarted(result.Package, flowId)
+
 	// always has to be a start
-	builder := rl.logger.TestStart(result.TestName, flowId)
+	builder += rl.logger.TestStart(result.TestName, flowId)
 
 	switch result.Result {
 	case models.Successful:
@@ -25,7 +28,7 @@ func (rl TeamCityTestResultLogger) Log(result models.TestResult) string {
 	case models.Failed:
 		builder += rl.logger.TestStdOut(result.TestName, result.StdOut, flowId)
 		builder += rl.logger.TestStdOut(result.TestName, result.StdErr, flowId)
-		builder += rl.logger.TestFailed(result.TestName, "Test Failed", "Check stdout for more information", flowId)
+		builder += rl.logger.TestFailed(result.TestName, "Test Failed", "", flowId)
 		break
 
 	case models.Ignored:
@@ -42,5 +45,9 @@ func (rl TeamCityTestResultLogger) Log(result models.TestResult) string {
 
 	// always has to be a finish
 	builder += rl.logger.TestFinished(result.TestName, testDuration, flowId)
+
+	// output the package name for logical grouping
+	builder += rl.logger.TestSuiteFinished(result.Package, flowId)
+
 	return builder
 }
