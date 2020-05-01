@@ -27,7 +27,7 @@ func (rl TeamCityTestResultLogger) Log(result models.TestResult) string {
 
 	case models.Failed:
 		builder += rl.logger.TestStdOut(result.TestName, result.StdOut, flowId)
-		builder += rl.logger.TestStdErr(result.TestName, result.StdErr, flowId)
+		builder += rl.logger.TestStdOut(result.TestName, result.StdErr, flowId)
 		builder += rl.logger.TestFailed(result.TestName, "Test Failed", "", flowId)
 		break
 
